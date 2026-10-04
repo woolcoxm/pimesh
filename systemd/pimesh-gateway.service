@@ -1,0 +1,14 @@
+[Unit]
+Description=PiMesh OpenAI-compatible gateway
+After=network-online.target pimesh-fastlane.service
+
+[Service]
+# needed for the Workers -> Restart rpc button (worker_restart API)
+Environment=MESH_SSH_PASS=change-me
+User=kram
+ExecStart=/usr/bin/python3 /home/kram/pimesh/gateway.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

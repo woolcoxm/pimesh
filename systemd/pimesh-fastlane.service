@@ -1,0 +1,21 @@
+[Unit]
+Description=PiMesh NPU fast lane (llama-server + ggml-axcl)
+After=network-online.target
+
+[Service]
+User=kram
+Environment=LD_LIBRARY_PATH=/usr/lib/axcl
+Environment=GGML_AXCL_CONNECT_TIMEOUT=180
+Environment=GGML_AXCL_GGUF=1
+Environment=GGML_AXCL_LAYER=1
+Environment=GGML_AXCL_FA=1
+Environment=GGML_AXCL_STREAM=1
+Environment=GGML_AXCL_LAYER_DIR=/home/kram/spec-q3
+Environment=GGML_AXCL_POST_MODEL=/home/kram/spec-q3/qwen3_post.axmodel
+ExecStartPre=/bin/sleep 20
+ExecStart=/home/kram/build-axcl/bin/llama-server -m /home/kram/models/Qwen3-0.6B-Q8_0.gguf --host 0.0.0.0 --port 8082 --ctx-size 2048 -t 4
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

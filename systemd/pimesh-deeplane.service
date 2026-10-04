@@ -1,0 +1,8 @@
+[Unit]
+Description=PiMesh deep lane watchdog (self-assembles mesh-30b when pi2 returns)
+[Service]
+User=kram
+ExecStart=/bin/bash -c 'while true; do /home/kram/pimesh/deeplane.sh; sleep 60; done'
+Restart=always
+[Install]
+WantedBy=multi-user.target

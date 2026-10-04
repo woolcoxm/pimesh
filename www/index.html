@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pimesh // edge ai cluster</title>
+<link rel="stylesheet" href="/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='6' fill='%235eead4'/></svg>">
+</head>
+<body>
+<nav id="side">
+  <div class="brand">pi<span>mesh</span></div>
+  <div class="nav-sub">edge ai cluster</div>
+  <a data-view="overview" class="nav active">◉ Overview</a>
+  <a data-view="chat" class="nav">💬 Chat</a>
+  <a data-view="models" class="nav">▤ Models</a>
+  <a data-view="workers" class="nav">⚙ Workers</a>
+  <a data-view="settings" class="nav">⚑ Settings</a>
+  <div id="side-status">
+    <div class="st-line"><span class="dot" id="dot-fast"></span> axera-fast</div>
+    <div class="st-line"><span class="dot" id="dot-deep"></span> mesh-30b</div>
+  </div>
+  <div class="foot">henry:8000 · v2</div>
+</nav>
+<main id="main">
+  <section id="view-overview" class="view active">
+    <h1>Overview</h1>
+    <div class="grid" id="ov-cards"></div>
+    <h2>Request log</h2>
+    <table class="tbl" id="ov-reqlog">
+      <thead><tr><th>time</th><th>model</th><th>lane</th><th>status</th><th>note</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section id="view-chat" class="view">
+    <h1>Chat</h1>
+    <div id="chat-wrap">
+      <div id="chat-side">
+        <label>Model</label>
+        <select id="chat-model"></select>
+        <label>System prompt</label>
+        <textarea id="chat-sys" rows="4" placeholder="You are a helpful assistant on a Raspberry Pi cluster..."></textarea>
+        <label>Temperature <span id="val-temp">0.7</span></label>
+        <input type="range" id="chat-temp" min="0" max="2" step="0.05" value="0.7">
+        <label>Max tokens <span id="val-max">512</span></label>
+        <input type="range" id="chat-max" min="32" max="8192" step="32" value="512">
+        <label class="chk"><input type="checkbox" id="chat-stream" checked> stream</label>
+        <button id="chat-clear" class="btn ghost">Clear conversation</button>
+        <div id="chat-stats" class="dim"></div>
+      </div>
+      <div id="chat-main">
+        <div id="chat-log"></div>
+        <div id="chat-inputrow">
+          <textarea id="chat-input" rows="3" placeholder="Send a message… (Enter to send, Shift+Enter for newline)"></textarea>
+          <button id="chat-send" class="btn primary">Send</button>
+          <button id="chat-stop" class="btn danger" style="display:none">Stop</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-models" class="view">
+    <h1>Models</h1>
+    <div class="grid">
+      <div class="card" id="m-fast-card">
+        <div class="card-title">axera-fast <span class="pill" id="m-fast-pill">—</span></div>
+        <div>LLM8850 NPU · always-on lane</div>
+        <div class="dim small">Engine set is bound to the Qwen3-0.6B geometry — this slot stays on the NPU.</div>
+      </div>
+      <div class="card" id="m-deep-card">
+        <div class="card-title">mesh-30b (deep lane) <span class="pill" id="m-deep-pill">—</span></div>
+        <div class="small mono" id="m-deep-model">—</div>
+        <div class="small">ctx <b id="m-deep-ctx">—</b> · workers <b id="m-deep-workers">—</b> <span id="m-deep-tps" class="dim"></span></div>
+        <div class="row gap">
+          <select id="m-ctx">
+            <option value="8192">8k ctx</option>
+            <option value="16384">16k ctx</option>
+            <option value="32768" selected>32k ctx</option>
+            <option value="65536">64k ctx</option>
+          </select>
+          <button id="m-apply" class="btn primary">Apply &amp; reload</button>
+        </div>
+        <div id="m-apply-state" class="dim small"></div>
+      </div>
+    </div>
+    <h2>On-disk GGUFs <span class="dim small">(click Load to serve on the deep lane)</span></h2>
+    <table class="tbl" id="m-disk">
+      <thead><tr><th>model</th><th>size</th><th>modified</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section id="view-workers" class="view">
+    <h1>Workers</h1>
+    <div class="grid" id="w-cards"></div>
+    <div class="row gap" style="margin-top:14px">
+      <button id="w-restart-coord" class="btn">Restart coordinator</button>
+      <span class="dim small">The watchdog re-assembles workers automatically every 60s.</span>
+    </div>
+    <h2>Deep lane log (tail)</h2>
+    <pre id="w-deeplog" class="logbox"></pre>
+  </section>
+
+  <section id="view-settings" class="view">
+    <h1>Settings</h1>
+    <div class="card">
+      <div class="card-title">OpenAI-compatible endpoint</div>
+      <div class="mono" id="s-baseurl">http://henry:8000/v1</div>
+      <div class="dim small">Works with Open WebUI, curl, or any OpenAI client. Models: axera-fast, mesh-30b, auto.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Routing</div>
+      <label class="chk"><input type="checkbox" id="s-hints"> send long / analytical prompts to mesh-30b (auto routing)</label>
+      <label class="chk"><input type="checkbox" id="s-think"> let axera-fast think (Qwen3 reasoning tokens)</label>
+    </div>
+    <div class="card">
+      <div class="card-title">Dashboard</div>
+      <label>Refresh interval <span id="s-ref-val">5</span>s</label>
+      <input type="range" id="s-refresh" min="2" max="30" step="1" value="5">
+    </div>
+    <div id="s-saved" class="ok small"></div>
+  </section>
+
+  <div id="toast" class="toast"></div>
+</main>
+<script src="/app.js"></script>
+</body>
+</html>

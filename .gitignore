@@ -1,0 +1,12 @@
+*.log
+*.img
+*.xz
+desired.json
+ui_config.json
+workers.json
+gateway_state.json
+loadstart
+deeplane.rpclist
+deeplane.applied
+bad_*
+__pycache__/
